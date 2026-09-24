@@ -26,12 +26,12 @@ footer{padding:30px 5%;color:#64748b;font-size:13px;border-top:1px solid #e5eaf2
 <h1>Analizuj polskie firmy na podstawie publicznych danych</h1>
 <p>Wyszukiwarka firm, dane rejestrowe, sprawozdania finansowe, wskaźniki i historia działalności — zbudowane na bazie oficjalnych, bezpłatnych źródeł publicznych.</p>
 <div class="search"><input id="q" placeholder="NIP, KRS, REGON lub nazwa firmy" value="0000795513"><button onclick="search()">Szukaj firmy</button></div>
-<p id="status" class="muted" style="color:#dbe5f5;margin-top:12px">KRS Open API: gotowe do podłączenia przez backend. Dane finansowe nie są prezentowane jako rzeczywiste, dopóki RDF nie zostanie zintegrowane.</p>
+<p id="status" class="muted" style="color:#dbe5f5;margin-top:12px">API PolskiRaport: wyszukiwanie działa przez własny backend. Dane finansowe pozostają puste do czasu integracji RDF.</p>
 </section>
 <main class="wrap">
 <section id="firma" class="card company">
-<div class="badge">KRS — DANE AKTUALNE</div>
-<h2 id="name">Przykładowa Spółka z o.o.</h2><div id="ids" class="muted">KRS: 0000795513 · NIP: — · REGON: —</div>
+<div class="badge">OCZEKUJE NA WYSZUKANIE</div>
+<h2 id="name">Wybierz firmę</h2><div id="ids" class="muted">KRS: 0000795513 · NIP: — · REGON: —</div>
 <div class="sources" style="margin-top:12px"><div class="source source-ok">KRS — źródło dostępne</div><div class="source source-warn">GUS BIR1 — wymaga klucza</div><div class="source source-ok">RDF — źródło dokumentów</div></div>
 <div class="tabs"><button class="active" onclick="showTab('summary',this)">Podsumowanie</button><button onclick="showTab('finance',this)">Finanse</button><button onclick="showTab('reports',this)">Sprawozdania</button><button onclick="showTab('board',this)">Zarząd</button><button onclick="showTab('pkd',this)">PKD</button><button onclick="showTab('sources',this)">Źródła</button></div>
 <div class="grid" style="margin-top:20px">
