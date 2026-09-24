@@ -54,17 +54,24 @@ footer{padding:30px 5%;color:#64748b;font-size:13px;border-top:1px solid #e5eaf2
 <script>
 async function search(){
  const q=document.getElementById('q').value.trim(),status=document.getElementById('status');
- if(!q)return; status.classList.remove('error');
- if(!/^\d{10}$/.test(q)){status.textContent='Na tym etapie podaj 10-cyfrowy numer KRS. Wyszukiwanie po nazwie, NIP i REGON dołączymy przez backend.';status.classList.add('error');return;}
- status.textContent='Pobieranie aktualnego odpisu KRS…';
- try{const data=await fetchKrs(q,'P');renderKrs(data,q);status.textContent='Pobrano aktualny odpis KRS ze źródła Ministerstwa Sprawiedliwości.';window.scrollTo({top:document.getElementById('firma').offsetTop-20,behavior:'smooth'});}
- catch(err){status.textContent=err.message||'Nie udało się pobrać danych KRS.';status.classList.add('error');}
+ if(!q)return; status.classList.remove('error'); status.textContent='Pobieranie danych firmy…';
+ try{const r=await fetch('/api/company/'+encodeURIComponent(q),{headers:{Accept:'application/json'}});if(!r.ok)throw new Error('BACKEND_FALLBACK');const data=await r.json();renderCompany(data);status.textContent='Dane pobrane przez backend PolskiRaport.';window.scrollTo({top:document.getElementById('firma').offsetTop-20,behavior:'smooth'});}
+ catch(err){
+  if(/^\d{10}$/.test(q)){try{const data=await fetchKrs(q,'P');renderKrs(data,q);status.textContent='Pobrano aktualny odpis KRS bezpośrednio ze źródła Ministerstwa Sprawiedliwości.';window.scrollTo({top:document.getElementById('firma').offsetTop-20,behavior:'smooth'});return;}catch(e){}}
+  status.textContent=err.message==='BACKEND_FALLBACK'?'Backend nie jest jeszcze wdrożony pod tym adresem. Dla KRS uruchomiono fallback bezpośredni.':'Nie udało się pobrać danych firmy.';status.classList.add('error');
+ }
 }
 async function fetchKrs(krs,register){
  let r=await fetch('https://api-krs.ms.gov.pl/api/krs/OdpisAktualny/'+krs+'?rejestr='+register+'&format=json',{headers:{Accept:'application/json'}});
  if(r.status===404&&register==='P')r=await fetch('https://api-krs.ms.gov.pl/api/krs/OdpisAktualny/'+krs+'?rejestr=S&format=json',{headers:{Accept:'application/json'}});
  if(!r.ok)throw new Error(r.status===404?'Nie znaleziono podmiotu o podanym numerze KRS.':'Źródło KRS jest chwilowo niedostępne (HTTP '+r.status+').');
  return r.json();
+}
+function renderCompany(data){
+ document.getElementById('name').textContent=data.name||'Podmiot';document.getElementById('ids').textContent='KRS: '+(data.krs||'—')+' · NIP: '+(data.nip||'—')+' · REGON: '+(data.regon||'—');document.querySelector('.badge').textContent='DANE ZE ŹRÓDŁA';
+ document.getElementById('summaryTable').innerHTML='<tr><td>Forma prawna</td><td>'+(data.legalForm||'—')+'</td></tr><tr><td>Status</td><td>'+(data.status||'podmiot znaleziony')+'</td></tr><tr><td>Siedziba</td><td>'+(data.address||'—')+'</td></tr><tr><td>Data rejestracji</td><td>'+(data.registrationDate||'—')+'</td></tr><tr><td>Ostatni stan odpisu</td><td>'+(data.updateDate||'—')+'</td></tr>';
+ const pkd=Array.isArray(data.pkd)?data.pkd:[];if(pkd.length)document.getElementById('pkdTable').innerHTML='<tr><th>Kod</th><th>Opis</th><th>Typ</th></tr>'+pkd.map(x=>'<tr><td>'+(x.code||'—')+'</td><td>'+(x.description||'—')+'</td><td>'+(x.type||'KRS')+'</td></tr>').join('');
+ if(data.representation)document.querySelector('#board .card').innerHTML='<h3>Organy i reprezentacja</h3><p class="muted">Dane pobrane z aktualnego odpisu KRS.</p><pre style="white-space:pre-wrap;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:#f8fafc;padding:12px;border-radius:8px;overflow:auto">'+JSON.stringify(data.representation,null,2)+'</pre>';
 }
 function renderKrs(json,krs){
  const d=json?.odpis?.dane?.dzial1||{},p=d.danePodmiotu||{},ids=p.identyfikatory||{},a=d.siedzibaIAdres?.adres||{},name=p.nazwa||'Podmiot KRS '+krs;
